@@ -1,8 +1,62 @@
-#!/bin/bash
+#!/bin/bash -e
+if [[ "x$1" != "x" ]]; then
+	if [[ "x$1" == "xsetup" ]]; then
+	  if [[ -f "$APPIAN_ROOT/server/config/database.yml" ]]; then
+      echo
+      echo "Appian is already setup. Run \`appian destroy\` first if you're changing envs"
+      echo
+      exit 1
+    fi
+
+		if [[ "x$2" != "x" ]]; then
+		  cd $APPIAN_ROOT/server
+			cp config/database.yml.$2 config/database.yml
+			cp db/seeds.rb.$2 db/seeds.rb
+      rake db:create:all
+			rake db:migrate
+			rake db:seed
+      exit 0
+		else
+			echo
+			echo "Please select an environment"
+			echo
+			echo "  appian setup [env]"
+			echo
+			exit 1
+		fi
+	fi
+
+	if [[ ! -f "$APPIAN_ROOT/server/config/database.yml" ]]; then
+		echo
+		echo "Appian not configured please run setup first"
+		echo
+		echo "  appian setup [env]"
+		echo
+		exit 1
+	fi
+
+	if [[ "x$1" == "xdestroy" ]]; then
+		cd $APPIAN_ROOT/server
+		rake db:drop:all
+		rm db/schema.rb
+		rm $APPIAN_ROOT/server/config/database.yml
+		rm $APPIAN_ROOT/server/db/seeds.rb
+    exit 0
+	fi
+
+	if [[ "x$1" == "xserver" ]]; then
+		cd $APPIAN_ROOT/server && rails s
+    exit 0
+	fi
+fi
+
 echo
 echo "Appian"
 echo "======"
 echo
-echo "  new - Create a new project"
-
+echo "  new     - Create a new project"
+echo "  server  - Start the appian server"
+echo "  setup   - Setup server config and database"
+echo "  destroy - Deletes the database and env info"
 echo
+
